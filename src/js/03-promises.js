@@ -1,66 +1,49 @@
-import Notiflix from 'notiflix';
+import { Notify } from 'notiflix';
 
 const refs = {
   form: document.querySelector('.form'),
-  delayInput: document.querySelector('input[name=delay]'),
-  stepInput: document.querySelector('input[name=step]'),
-  amountInput: document.querySelector('input[name=amount]'),
-  creatBtn: document.querySelector('button')
-}
+};
 
-refs.form.addEventListener('submit', promises)
+refs.form.addEventListener('submit', onSubmit);
 
-let formData = {};
-function promises(e) {
-  e.preventDefault();
-  formData = {
-    delayValue: refs.delayInput.value,
-    stepValue: refs.stepInput.value,
-    amountValue: refs.amountInput.value,
+function onSubmit(event) {
+  event.preventDefault();
+  const {
+    elements: { delay, step, amount },
+  } = event.currentTarget;
+  let delays = Number(delay.value);
+  let steps = Number(step.value);
+  let amounts = Number(amount.value);
+  let position = 1;
+
+  if (delays < 0 || steps < 0) {
+    Notify.failure(`FirsDelay end Delay step - CANNOT BE NEGATIVE`);
+    return;
   }
-  let delay = Number(formData.delayValue);
-  let step = Number(formData.stepValue);
-  let amount = Number(formData.amountValue);
 
-  modifiedPromises(delay, step, amount);
+  for (position; position <= amounts; position += 1) {
+    createPromise(position, delays)
+      .then(({ position, delays }) => {
+        setTimeout(() => {
+          Notify.success(`Fulfilled promise ${position} in ${delays}ms`);
+        }, delays);
+      })
+      .catch(({ position, delays }) => {
+        setTimeout(() => {
+          Notify.failure(`Rejected promise ${position} in ${delays}ms`);
+        }, delays);
+      });
+    delays += steps;
+  }
 }
 
-
-function createPromise(position, delay) {
-  return new Promise ((resolve, reject) => {
-    const shouldResolve = Math.random() > 0.3;
+function createPromise(position, delays) {
+  const shouldResolve = Math.random() > 0.3;
+  return new Promise((resolve, reject) => {
     if (shouldResolve) {
-      resolve(`✅ Fulfilled promise ${position} in ${delay}ms`);
+      resolve({ position, delays }); // Fulfill
     } else {
-      reject(`❌ Rejected promise ${position} in ${delay}ms`);
+      reject({ position, delays }); // Reject
     }
-  })
-}
-
-function modifiedPromises(delay, step, amount) {
-  let counter = 0;
-  for (let i = delay; i < 1000000; i += delay) {
-    setTimeout(() => {
-      counter += 1;
-      if (counter > amount) {
-        return;
-      } else if (counter < 2) {
-        createPromise(counter, delay)
-        .then(result => Notiflix.Notify.success(`${result}`))
-        .catch(result => Notiflix.Notify.failure(`${result}`));
-      } else {
-        const stepValue = delay += step;
-        createPromise(counter, stepValue)
-        .then(result => Notiflix.Notify.success(`${result}`))
-        .catch(result => Notiflix.Notify.failure(`${result}`));
-      }
-    }, time(delay, i, step));
-    }
-}
-
-function time(delay, i, step) {
-  if (step < 1) {
-    return delay;
-  }
-  return i;
+  });
 }

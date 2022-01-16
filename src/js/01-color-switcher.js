@@ -12,12 +12,12 @@ function onStart (){
     timerId = setInterval(() => {
     document.body.style.backgroundColor = getRandomHexColor();
     console.log('hex-color:', getRandomHexColor())
-    stopBtn.disabled = false;
-    stopBtn.classList.add('stop-active')
-    startBtn.disabled = true;
-    startBtn.classList.add('stop')
     }, 1000);
     
+    stopBtn.disabled = false;
+    startBtn.disabled = true;
+    stopBtn.classList.add('stop-active')
+    startBtn.classList.add('stop')
 };
 
 function onStop() {
